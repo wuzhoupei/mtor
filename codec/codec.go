@@ -1,7 +1,7 @@
 package codec
 
 import (
-	"fmt"
+	// "fmt"
 	"strconv"
 	"mtor/CMD"
 ) 
@@ -167,7 +167,6 @@ func Decode_ti_ci_Type(t,i int) ([]string,error) {
 	
 	key := string(Encode_tbi_ci(t, i))
 	value,err := CMD.RedisGet(key)
-	fmt.Printf("key : value : %v : %v\n", key,value)
 	if err != nil {
 		return cType,err
 	}
@@ -184,13 +183,14 @@ func Decode_ti_ci_Type(t,i int) ([]string,error) {
 			}
 
 			cT := value[i+3:iend]
+			cType = []string{cT}
 			if len(cT) > 3 {
 				if cT[0:4] == "CHAR" {
-					cTi := cT[5:len(cT)-2]
+					cTi := cT[5:len(cT)-1]
 					cType = []string{"CHAR", cTi}
 				}
-				if cT[0:7] == "VARCHAR" {
-					cTi := cT[8:len(cT)-2]
+				if len(cT) >= 7 && cT[0:7] == "VARCHAR" {
+					cTi := cT[8:len(cT)-1]
 					cType = []string{"VARCHAR", cTi}
 				}
 			}
@@ -205,7 +205,6 @@ func Decode_ti_ci_Type(t,i int) ([]string,error) {
 func Decode_tn_Id(tn string) int {
 	key := string(Encode_tbn(tn))
 	value,err := CMD.RedisGet(key)
-	fmt.Printf("table id : %v\n",value)
 	if err != nil {
 		return -1
 	}

@@ -14,12 +14,10 @@ import (
 const DB_MAX_ID = 16
 
 func ChangeDB(x int) {
-	fmt.Printf("Change db by id \"%d\"\n",x)
 	CMD.ChangeDB(x)
 }
 
 func ChangeDBto(dbName string) {
-	fmt.Printf("Change db by name \"%s\"\n",dbName)
 	for i := 0; i < DB_MAX_ID; i ++ {
 		ChangeDB(i)
 
@@ -37,7 +35,6 @@ func CreateDB(dbName string) bool {
 		ChangeDB(i)
 
 		v, err := CMD.RedisGet("_DBName")
-		fmt.Printf("db %d : %v  %v  \n",i, len(v), err)
 		
 		if v == dbName {
 			return true
@@ -61,7 +58,6 @@ func DeleteDB(dbName string) bool {
 		ChangeDB(i)
 
 		v, _ := CMD.RedisGet("_DBName")
-		fmt.Printf("db %d : %v  \n",i, v)
 
 		if v == dbName {
 			CMD.FlushDB()
@@ -183,9 +179,6 @@ func creColumnsOnTable(lines *[]string, i,ti,lineLen int) {
 			line[len(line)-1] = line[len(line)-1][0:len(line[len(line)-1])-2]
 		}
 
-		
-		fmt.Printf("%v\n",line)
-
 		if line[len(line)-1] == "NULL" {
 			canNULL = false
 		} else {
@@ -208,12 +201,10 @@ func CreateTableinDB(dbName string, lines *[]string, i int) {
 	ChangeDBto(dbName)
 
 	var lineLen int = len(*lines)
-	fmt.Printf("lineLen : %v and i from %v\n",lineLen, i)
 
 	for ; i < lineLen; i ++ {
 		line := (*lines)[i]
 		s := strings.Fields(line)
-		fmt.Printf("line : (%T) %v %v\n",s, len(s),s)
 		if len(s) <= 0 {
 			continue 
 		}
@@ -227,7 +218,6 @@ func CreateTableinDB(dbName string, lines *[]string, i int) {
 		if len(s) >= 2 && s[0] == "DROP" && s[1] == "TABLE" {
 			// get the db need del by a []sting
 			tableName, newi := splitTableName(lines, i)
-			fmt.Printf("%v\n",tableName)
 			for _, tn := range tableName {
 				// del the table by name in the db
 				delTable(dbName, tn)
@@ -241,7 +231,6 @@ func CreateTableinDB(dbName string, lines *[]string, i int) {
 		// find the creat table order
 		if len(s) >=2 && s[0] == "CREATE" && s[1] == "TABLE" {
 			tableName := s[2][0:len(s[2])]
-			fmt.Printf("table name will be created : %v\n",tableName)
 			// create a table by name, and get this new table's id
 			tableid := creTable(dbName, tableName)
 			// create each column in this table
