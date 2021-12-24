@@ -205,8 +205,9 @@ func Decode_ti_ci_Type(t,i int) ([]string,error) {
 func Decode_tn_Id(tn string) int {
 	key := string(Encode_tbn(tn))
 	value,err := CMD.RedisGet(key)
+	// fmt.Printf("%v : %v\n",key,value)
 	if err != nil {
-		return -1
+		return -2
 	}
 
 	x,err0 := strconv.Atoi(value[3:len(value)])

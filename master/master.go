@@ -46,55 +46,55 @@ func operatorDDL(lines *[]string) (bool,error) {
 	return true, nil
 }
 
-// func operatorDML(lines *[]string) (bool,error) {
-// 	fmt.Printf("Start DML operator ... \n")
-
-// 	for _,line := range (*lines) {
-// 		s := strings.Split(line," ")
-// 		if len(s) >= 2 && s[0] == "source" {
-// 			dumpName := s[1]
-// 			OK,_ := worker.InsertOneDump(dumpName)
-// 			if !OK {
-//         		log.Fatalf("insert %s failed\n",dumpName)
-// 				return false, nil
-// 			}
-// 		}
-// 	}
-// 	return true, nil
-// }
-
 func operatorDML(lines *[]string) (bool,error) {
 	fmt.Printf("Start DML operator ... \n")
-
-	dumpSum := 0
-	// dumpNames := []string{}
-	cc := make(chan string, 0)
 
 	for _,line := range (*lines) {
 		s := strings.Split(line," ")
 		if len(s) >= 2 && s[0] == "source" {
-			dn := s[1]
-			go func(dumpName string, c chan string) {
-				_,dnBack := worker.InsertOneDump(dumpName)
-				c <- dnBack
-			} (dn,cc)
-
-			dumpSum += 1
-			// dumpNames = append(dumpNames, dn)
+			dumpName := s[1]
+			OK,_ := worker.InsertOneDump(dumpName)
+			if !OK {
+        		log.Fatalf("insert %s failed\n",dumpName)
+				return false, nil
+			}
 		}
 	}
-
-	flag := true
-	for i := 0; i < dumpSum; i ++ {
-		errorName := <- cc
-		fmt.Printf("(%v)\n",errorName)
-		if errorName != "" {
-			fmt.Printf("dump %v failed\n",errorName)
-			flag = false
-		}
-	}
-	return flag, nil
+	return true, nil
 }
+
+// func operatorDML(lines *[]string) (bool,error) {
+// 	fmt.Printf("Start DML operator ... \n")
+
+// 	dumpSum := 0
+// 	// dumpNames := []string{}
+// 	cc := make(chan string, 0)
+
+// 	for _,line := range (*lines) {
+// 		s := strings.Split(line," ")
+// 		if len(s) >= 2 && s[0] == "source" {
+// 			dn := s[1]
+// 			go func(dumpName string, c chan string) {
+// 				_,dnBack := worker.InsertOneDump(dumpName)
+// 				c <- dnBack
+// 			} (dn,cc)
+
+// 			dumpSum += 1
+// 			// dumpNames = append(dumpNames, dn)
+// 		}
+// 	}
+
+// 	flag := true
+// 	for i := 0; i < dumpSum; i ++ {
+// 		errorName := <- cc
+// 		fmt.Printf("(%v)\n",errorName)
+// 		if errorName != "" {
+// 			fmt.Printf("dump %v failed\n",errorName)
+// 			flag = false
+// 		}
+// 	}
+// 	return flag, nil
+// }
 
 func Migrate(sqlFilePath string) (bool, error) {
 	bytes, err := ioutil.ReadFile(sqlFilePath)

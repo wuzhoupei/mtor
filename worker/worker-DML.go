@@ -9,9 +9,10 @@ import (
 	"mtor/codec"
 )
 
-var DumpPath, tableName string
-var columnType []int
-var t,rowId int
+var DumpPath string
+// var tableName string
+// var columnType []int
+// var t,rowId int
 
 func getTableName(line *string) string {
 	for i,c := range (*line) {
@@ -37,12 +38,14 @@ func getRowValue(line *string) string {
 	return ""
 }
 
-func getColumnsType() {
+func getColumnsType(t int) []int {
+	columnType := []int{}
 	for i := 0; ; i ++ {
 		cType,_ := codec.Decode_ti_ci_Type(t, i)
 		
 		if len(cType) == 0 {
-			return 
+			// fmt.Printf("%d , %v\n",t,columnType)
+			return columnType
 		}
 
 		switch cType[0] {
@@ -81,34 +84,37 @@ func getColumnsType() {
 	} 
 }
 
-func insertOneLine(line string) {
+func insertOneLine(line string, t int, rowId *int, cTarr *[]int) {
 	line = line[1:len(line)-2]
 	s := strings.Split(line, ",")
-	var keyr,valuer, keyc,valuec string
+	var keyr,valuer string
+	var keyc,valuec string
 
-	keyr = string(codec.Encode_t_r(t,rowId))
+	keyr = string(codec.Encode_t_r(t,*rowId))
 
 	for i,x := range s {
 		if x[0] == '\'' {
 			x = x[1:len(x)-1]
 		}
-		valuer += string(codec.Encode_Pt_Pe(columnType[i], x))
-		keyc = string(codec.Encode_t_ci_ce_r(t, i, x, rowId))
+		valuer += string(codec.Encode_Pt_Pe((*cTarr)[i], x))
+		keyc = string(codec.Encode_t_ci_ce_r(t, i, x, *rowId))
 		CMD.RedisSet(keyc, valuec)
 	}
 
 	CMD.RedisSet(keyr, valuer)
 
-	rowId += 1
+	*rowId += 1
 }
 
-func InsertOneDump(dumpName string) bool {
-	rowId = 0
-	columnType = []int{}
+func InsertOneDump(dumpName string) (bool,string) {
+	rowId := 0
+	columnType := []int{}
+	tableName := ""
+	t := 0
 
 	f,err := os.Open(DumpPath + dumpName)
 	if err != nil {
-		return false
+		return false,dumpName
 	}
 
 	fmt.Printf("Start %v\n",dumpName)
@@ -123,13 +129,15 @@ func InsertOneDump(dumpName string) bool {
 		if len(line) >= 6 && line[0:6] == "INSERT" {
 			tableName = getTableName(&line)
 			t = codec.Decode_tn_Id(tableName)
-			getColumnsType()
+			columnType = getColumnsType(t)
 			line = getRowValue(&line)
 		}
 		if len(line) > 0 {
-			insertOneLine(line)
+			insertOneLine(line, t, &rowId, &columnType)
 		}
 	}
 
-	return true
+	fmt.Printf("%d\n",rowId)
+
+	return true,""
 }
