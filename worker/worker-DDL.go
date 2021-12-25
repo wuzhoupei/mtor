@@ -158,6 +158,26 @@ func creOneColumn(ti int, cn,ct string, cnull bool) {
 	}
 }
 
+func crePrimaryKey(ti int, line *[]string) {
+	pNames := (*line)[2][1:len((*line)[2])-1]
+	pName := strings.Split(pNames, ",")
+	for _,Name := range pName {
+		key := string(codec.Encode_ti_P_cn(ti,Name))
+		fmt.Printf("%v\n",key)
+		CMD.RedisSet(key, "1")
+	}
+}
+
+func creUniqueKey(ti int, line *[]string) {
+	pNames := (*line)[2][1:len((*line)[2])-1]
+	pName := strings.Split(pNames, ",")
+	for _,Name := range pName {
+		key := string(codec.Encode_ti_U_cn(ti,Name))
+		fmt.Printf("%v\n",key)
+		CMD.RedisSet(key, "1")
+	}
+}
+
 /*
 * find all line which every one include a column order,
 * and create them one by one.
@@ -176,16 +196,24 @@ func creColumnsOnTable(lines *[]string, i,ti,lineLen int) {
 		if line[len(line)-1][len(line[len(line)-1])-1] != ',' {
 			needRet = true
 		} else {
-			line[len(line)-1] = line[len(line)-1][0:len(line[len(line)-1])-2]
+			line[len(line)-1] = line[len(line)-1][0:len(line[len(line)-1])-1]
 		}
 
-		if line[len(line)-1] == "NULL" {
-			canNULL = false
+		if line[0] == "PRIMARY" {
+			crePrimaryKey(ti, &line)
+			continue 
+		} else if line[0] == "UNIQUE" {
+			creUniqueKey(ti, &line)
+			continue 
 		} else {
-			canNULL = true
+			if line[len(line)-1] == "NULL" {
+				canNULL = false
+			} else {
+				canNULL = true
+			}
+	
+			creOneColumn(ti, columnName, columnType, canNULL)
 		}
-
-		creOneColumn(ti, columnName, columnType, canNULL)
 
 		if needRet {
 			return

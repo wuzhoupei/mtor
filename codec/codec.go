@@ -12,6 +12,8 @@ const Pre_column_name       = "_cn"
 const Pre_column_canNULL    = "_cc"
 const Pre_column_id         = "_ci"
 const Pre_column_type       = "_ct"
+const Pre_column_primary    = "_P"
+const Pre_column_unique     = "_U"
 const Pre_kv_table          = "t"
 const Pre_kv_row            = "\x00r"
 const Pre_kv_column_id      = "\x00ci"
@@ -86,6 +88,26 @@ func Encode_cc_ct_ci(cc bool, ct string, ci int) []byte {
 	b = append(b, ct...)
 	b = append(b, Pre_column_id...)
 	b = append(b, strconv.Itoa(ci)...)
+	return b
+}
+
+func Encode_ti_P_cn(ti int, cn string) []byte {
+	var b []byte
+	b = append(b, Pre_table_id...)
+	b = append(b, strconv.Itoa(ti)...)
+	b = append(b, Pre_column_primary...)
+	b = append(b, Pre_column_name...)
+	b = append(b, cn...)
+	return b
+}
+
+func Encode_ti_U_cn(ti int, cn string) []byte {
+	var b []byte
+	b = append(b, Pre_table_id...)
+	b = append(b, strconv.Itoa(ti)...)
+	b = append(b, Pre_column_unique...)
+	b = append(b, Pre_column_name...)
+	b = append(b, cn...)
 	return b
 }
 
